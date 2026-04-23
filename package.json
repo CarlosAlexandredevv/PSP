@@ -1,0 +1,34 @@
+{
+  "name": "pagouia-challenger",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsup src/server.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CarlosAlexandredevv/Pagouia-challenger.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/CarlosAlexandredevv/Pagouia-challenger/issues"
+  },
+  "homepage": "https://github.com/CarlosAlexandredevv/Pagouia-challenger#readme",
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "fastify": "^5.8.5"
+  }
+}
