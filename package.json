@@ -7,6 +7,8 @@
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "build": "tsup src/server.ts --format esm --dts --clean",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
     "typecheck": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,11 +26,14 @@
   "homepage": "https://github.com/CarlosAlexandredevv/Pagouia-challenger#readme",
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "fastify": "^5.8.5"
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5",
+    "pg": "^8.20.0"
   }
 }
