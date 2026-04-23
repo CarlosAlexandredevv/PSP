@@ -9,6 +9,7 @@
     "build": "tsup src/server.ts --format esm --dts --clean",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
+    "db:migrate": "tsx src/scripts/migrate.ts",
     "typecheck": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
