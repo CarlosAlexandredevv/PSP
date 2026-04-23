@@ -1,10 +1,13 @@
-import fastify from 'fastify';
+import fastify, { type FastifyError } from 'fastify';
 import {
+  hasZodFastifySchemaValidationErrors,
   type ZodTypeProvider,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+
+import { transactionRoutes } from './modules/transaction/http/routes';
 
 export const app = fastify({
   logger: true,
@@ -12,6 +15,24 @@ export const app = fastify({
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
+
+app.setErrorHandler((error: FastifyError, _request, reply) => {
+  if (hasZodFastifySchemaValidationErrors(error)) {
+    const issues = error.validation.map((issue) => ({
+      field: issue.instancePath.replace('/', '') || 'body',
+      message: issue.message,
+    }));
+
+    return reply.status(422).send({
+      message: 'Entidade não processável.',
+      errors: issues,
+    });
+  }
+
+  return reply.status(error.statusCode ?? 500).send({
+    message: error.message,
+  });
+});
 
 app.withTypeProvider<ZodTypeProvider>().get(
   '/health',
@@ -29,3 +50,7 @@ app.withTypeProvider<ZodTypeProvider>().get(
     return { status: 'ok' as const };
   },
 );
+
+app.register(async (instance) => {
+  await instance.register(transactionRoutes);
+});

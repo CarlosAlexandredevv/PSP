@@ -7,11 +7,11 @@ async function bootstrap() {
   const port = parseInt(process.env.PORT ?? '3001');
 
   await app.listen({
-    host: '127.0.0.1',
+    host: 'localhost',
     port,
   });
 
-  console.log(`🚀 HTTP Server Running at http://127.0.0.1:${port}`);
+  console.log(`🚀 HTTP Server Running at http://localhost:${port}`);
 }
 
 bootstrap().catch((error) => {
