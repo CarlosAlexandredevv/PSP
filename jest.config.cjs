@@ -2,8 +2,9 @@
 module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/*.spec.ts', '**/*.test.ts'],
+  testMatch: ['**/*.spec.ts'],
   setupFiles: ['<rootDir>/src/test/setup-env.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/test/setup-after-env.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   clearMocks: true,
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts'],

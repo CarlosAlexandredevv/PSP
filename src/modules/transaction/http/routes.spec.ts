@@ -41,9 +41,6 @@ describe('transaction routes', () => {
 
   afterAll(async () => {
     await app.close();
-    if (dbAvailable) {
-      await db.end();
-    }
   });
 
   it('retorna 201 ao criar transação pix válida', async () => {

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 
 import { db } from '../../../../lib/db';
 import { resetDatabaseSchema } from '../../../../test/helpers/database';
@@ -25,12 +25,6 @@ describe('PayableRepository e transação (integração)', () => {
     if (!dbAvailable) return;
     await db.query('DELETE FROM payables');
     await db.query('DELETE FROM transactions');
-  });
-
-  afterAll(async () => {
-    if (dbAvailable) {
-      await db.end();
-    }
   });
 
   it('cria payable e mantém consistência gross = fee + net', async () => {
