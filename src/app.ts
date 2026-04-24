@@ -7,6 +7,7 @@ import {
 } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 
+import { UnprocessableEntityError } from './shared/errors/unprocessable-entity.error';
 import { transactionRoutes } from './modules/transaction/http/routes';
 
 export const app = fastify({
@@ -26,6 +27,13 @@ app.setErrorHandler((error: FastifyError, _request, reply) => {
     return reply.status(422).send({
       message: 'Entidade não processável.',
       errors: issues,
+    });
+  }
+
+  if (error instanceof UnprocessableEntityError) {
+    return reply.status(error.statusCode).send({
+      message: error.message,
+      errors: error.issues,
     });
   }
 

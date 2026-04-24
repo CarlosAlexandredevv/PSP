@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { db } from '../../../lib/db';
+import { UnprocessableEntityError } from '../../../shared/errors/unprocessable-entity.error';
 import type { PayableStatus } from '../entities/payable.entity';
 import type {
   PaymentMethod,
@@ -94,16 +95,54 @@ export class TransactionService {
 
   private validateCardFields(input: CreateTransactionRequest) {
     if (input.method === 'credit_card') {
-      if (!input.cardNumber || !input.valid || !input.cvv) {
-        throw new Error(
-          'Campos card_number, valid e cvv são obrigatórios para credit_card.',
-        );
+      const issues = [];
+      if (!input.cardNumber) {
+        issues.push({
+          field: 'card_number',
+          message: 'card_number é obrigatório para credit_card.',
+        });
+      }
+      if (!input.valid) {
+        issues.push({
+          field: 'valid',
+          message: 'valid é obrigatório para credit_card.',
+        });
+      }
+      if (!input.cvv) {
+        issues.push({
+          field: 'cvv',
+          message: 'cvv é obrigatório para credit_card.',
+        });
+      }
+
+      if (issues.length > 0) {
+        throw new UnprocessableEntityError('Entidade não processável.', issues);
       }
       return;
     }
 
-    if (input.cardNumber || input.valid || input.cvv) {
-      throw new Error('Campos de cartão não devem ser enviados para pix.');
+    const issues = [];
+    if (input.cardNumber) {
+      issues.push({
+        field: 'card_number',
+        message: 'card_number não deve ser enviado para pix.',
+      });
+    }
+    if (input.valid) {
+      issues.push({
+        field: 'valid',
+        message: 'valid não deve ser enviado para pix.',
+      });
+    }
+    if (input.cvv) {
+      issues.push({
+        field: 'cvv',
+        message: 'cvv não deve ser enviado para pix.',
+      });
+    }
+
+    if (issues.length > 0) {
+      throw new UnprocessableEntityError('Entidade não processável.', issues);
     }
   }
 }

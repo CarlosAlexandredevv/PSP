@@ -1,8 +1,19 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 
 import { app } from '../../../app';
 import { db } from '../../../lib/db';
+import { UnprocessableEntityError } from '../../../shared/errors/unprocessable-entity.error';
 import { resetDatabaseSchema } from '../../../test/helpers/database';
+import { TransactionService } from '../services/transaction.service';
 
 describe('transaction routes', () => {
   let dbAvailable = false;
@@ -22,6 +33,10 @@ describe('transaction routes', () => {
     if (!dbAvailable) return;
     await db.query('DELETE FROM payables');
     await db.query('DELETE FROM transactions');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   afterAll(async () => {
@@ -92,5 +107,41 @@ describe('transaction routes', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({ status: 'ok' });
+  });
+
+  it('retorna 422 quando regra de negócio lança erro de entidade não processável', async () => {
+    jest
+      .spyOn(TransactionService.prototype, 'create')
+      .mockRejectedValueOnce(
+        new UnprocessableEntityError('Entidade não processável.', [
+          {
+            field: 'card_number',
+            message: 'card_number não deve ser enviado para pix.',
+          },
+        ]),
+      );
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 1_000,
+        description: 'Cafe',
+        method: 'pix',
+        name: 'John Doe',
+        cpf: '12345678900',
+      },
+    });
+
+    expect(response.statusCode).toBe(422);
+    expect(response.json()).toEqual({
+      message: 'Entidade não processável.',
+      errors: [
+        {
+          field: 'card_number',
+          message: 'card_number não deve ser enviado para pix.',
+        },
+      ],
+    });
   });
 });
