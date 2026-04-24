@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 
 import {
   createTransactionBodySchema,
@@ -16,15 +17,28 @@ import { TransactionService } from '../services/transaction.service';
 
 export async function transactionRoutes(app: FastifyInstance) {
   const transactionService = new TransactionService();
+  const unprocessableEntityResponseSchema = z.object({
+    message: z.string(),
+    errors: z.array(
+      z.object({
+        field: z.string(),
+        message: z.string(),
+      }),
+    ),
+  });
 
   app.withTypeProvider<ZodTypeProvider>().post(
     '/transaction',
     {
       schema: {
         tags: ['transaction'],
+        summary: 'Processar transacao (cash-in)',
+        description:
+          'Cria uma transacao e seu payable correspondente. Regras: PIX => paid em D+0 com fee de 2,99%; credit_card => waiting_funds em D+15 com fee de 8,99%. Para compliance PCI DSS, apenas os 4 ultimos digitos do cartao sao armazenados e retornados.',
         body: createTransactionBodySchema,
         response: {
           201: createTransactionResponseSchema,
+          422: unprocessableEntityResponseSchema,
         },
       },
     },
@@ -53,9 +67,13 @@ export async function transactionRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ['transaction'],
+        summary: 'Listar transacoes',
+        description:
+          'Retorna todas as transacoes com paginacao e filtros opcionais por metodo e CPF.',
         querystring: listTransactionsQuerySchema,
         response: {
           200: listTransactionsResponseSchema,
+          422: unprocessableEntityResponseSchema,
         },
       },
     },
@@ -80,6 +98,9 @@ export async function transactionRoutes(app: FastifyInstance) {
     {
       schema: {
         tags: ['transaction'],
+        summary: 'Consultar saldo do cliente',
+        description:
+          'Consolida payables por status. available = paid; waiting_funds = waiting_funds.',
         response: {
           200: getBalanceResponseSchema,
         },

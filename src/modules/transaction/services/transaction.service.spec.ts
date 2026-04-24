@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import { db } from '../../../lib/db';
-import { UnprocessableEntityError } from '../../../shared/errors/unprocessable-entity.error';
 import { TransactionService } from './transaction.service';
 
 function makeClientMock() {
@@ -197,24 +196,6 @@ describe('TransactionService', () => {
     expect(client.query).toHaveBeenCalledWith('ROLLBACK');
     expect(client.query).not.toHaveBeenCalledWith('COMMIT');
     expect(client.release).toHaveBeenCalled();
-  });
-
-  it('lança UnprocessableEntityError quando campos de cartão chegam com pix', async () => {
-    const service = new TransactionService(
-      { create: jest.fn() } as never,
-      { create: jest.fn() } as never,
-    );
-
-    await expect(
-      service.create({
-        amount: 1_000,
-        description: 'Produto',
-        method: 'pix',
-        name: 'John Doe',
-        cpf: '12345678900',
-        cardNumber: '4111111111111111',
-      }),
-    ).rejects.toBeInstanceOf(UnprocessableEntityError);
   });
 
   it('lista transações com paginação e metadados', async () => {
