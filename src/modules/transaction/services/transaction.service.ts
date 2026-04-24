@@ -7,8 +7,8 @@ import type {
   PaymentMethod,
   Transaction,
 } from '../entities/transaction.entity';
-import { PayableRepository } from '../repositories/payable.repository';
-import { TransactionRepository } from '../repositories/transaction.repository';
+import { PayableRepository } from '../repositories/payable/payable.repository';
+import { TransactionRepository } from '../repositories/transaction/transaction.repository';
 
 interface CreateTransactionRequest {
   amount: number;
@@ -39,6 +39,13 @@ interface ListTransactionsResponse {
     limit: number;
     total: number;
     totalPages: number;
+  };
+}
+
+interface GetBalanceResponse {
+  balance: {
+    available: number;
+    waiting_funds: number;
   };
 }
 
@@ -131,6 +138,17 @@ export class TransactionService {
         limit,
         total,
         totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getBalance(): Promise<GetBalanceResponse> {
+    const summary = await this.payableRepository.getBalanceSummary();
+
+    return {
+      balance: {
+        available: summary.available,
+        waiting_funds: summary.waitingFunds,
       },
     };
   }

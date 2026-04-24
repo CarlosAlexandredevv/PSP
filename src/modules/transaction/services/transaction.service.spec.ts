@@ -302,4 +302,51 @@ describe('TransactionService', () => {
       totalPages: 0,
     });
   });
+
+  it('retorna saldo mapeando o summary do repository', async () => {
+    const payableRepo = {
+      create: jest.fn(),
+      getBalanceSummary: jest.fn(async () => ({
+        available: 1_940,
+        waitingFunds: 9_101,
+      })),
+    };
+    const service = new TransactionService(
+      { create: jest.fn(), list: jest.fn(), count: jest.fn() } as never,
+      payableRepo as unknown as ConstructorParameters<typeof TransactionService>[1],
+    );
+
+    const result = await service.getBalance();
+
+    expect(payableRepo.getBalanceSummary).toHaveBeenCalledWith();
+    expect(result).toEqual({
+      balance: {
+        available: 1_940,
+        waiting_funds: 9_101,
+      },
+    });
+  });
+
+  it('retorna saldo zerado quando repository não encontra valores', async () => {
+    const payableRepo = {
+      create: jest.fn(),
+      getBalanceSummary: jest.fn(async () => ({
+        available: 0,
+        waitingFunds: 0,
+      })),
+    };
+    const service = new TransactionService(
+      { create: jest.fn(), list: jest.fn(), count: jest.fn() } as never,
+      payableRepo as unknown as ConstructorParameters<typeof TransactionService>[1],
+    );
+
+    const result = await service.getBalance();
+
+    expect(result).toEqual({
+      balance: {
+        available: 0,
+        waiting_funds: 0,
+      },
+    });
+  });
 });

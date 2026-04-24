@@ -5,10 +5,13 @@ import {
   createTransactionBodySchema,
   createTransactionResponseSchema,
   type CreateTransactionBody,
+} from '../dto/create-transaction/create-transaction.dto';
+import { getBalanceResponseSchema } from '../dto/get-balance/get-balance.dto';
+import {
   listTransactionsQuerySchema,
   listTransactionsResponseSchema,
   type ListTransactionsQuery,
-} from '../dto/create-transaction.dto';
+} from '../dto/list-transactions/list-transactions.dto';
 import { TransactionService } from '../services/transaction.service';
 
 export async function transactionRoutes(app: FastifyInstance) {
@@ -68,6 +71,22 @@ export async function transactionRoutes(app: FastifyInstance) {
         ...serviceInput,
       });
 
+      return reply.status(200).send(result);
+    },
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/balance',
+    {
+      schema: {
+        tags: ['transaction'],
+        response: {
+          200: getBalanceResponseSchema,
+        },
+      },
+    },
+    async (_request, reply) => {
+      const result = await transactionService.getBalance();
       return reply.status(200).send(result);
     },
   );

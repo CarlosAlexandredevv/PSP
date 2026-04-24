@@ -296,4 +296,65 @@ describe('transaction routes', () => {
       ],
     });
   });
+
+  it('retorna saldo com available e waiting_funds no GET /balance', async () => {
+    if (!dbAvailable) return;
+
+    await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 2_000,
+        description: 'Produto Pix',
+        method: 'pix',
+        name: 'John Doe',
+        cpf: '12345678900',
+      },
+    });
+
+    await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 10_000,
+        description: 'Produto Cartao',
+        method: 'credit_card',
+        name: 'Jane Doe',
+        cpf: '12345678901',
+        card_number: '4111111111111111',
+        valid: '1229',
+        cvv: '123',
+      },
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/balance',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      balance: {
+        available: 1940,
+        waiting_funds: 9101,
+      },
+    });
+  });
+
+  it('retorna saldo zerado no GET /balance quando não há dados', async () => {
+    if (!dbAvailable) return;
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/balance',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      balance: {
+        available: 0,
+        waiting_funds: 0,
+      },
+    });
+  });
 });
