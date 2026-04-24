@@ -3,6 +3,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/*.spec.ts'],
+  maxWorkers: 1,
   setupFiles: ['<rootDir>/src/test/setup-env.ts'],
   setupFilesAfterEnv: ['<rootDir>/src/test/setup-after-env.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
