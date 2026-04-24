@@ -20,6 +20,8 @@ PSP simplificado - processamento de transacoes e recebiveis.
 
 ## Como rodar
 
+Fluxo principal deste desafio: **subir o projeto apenas via containers (app + postgres)**.
+
 ### Atalho recomendado (setup completo)
 
 O projeto possui bootstrap automatizado em `src/scripts/bootstrap.sh`:
@@ -32,32 +34,49 @@ npm run setup
 npm run setup:only
 ```
 
-### Cenario A - banco via Docker e app local
+### Cenario A - subir containers (recomendado)
 
 ```bash
-# 1. Subir banco
+# 1. Subir app + postgres
 npm run db:up
 
-# 2. Configurar variaveis de ambiente
-cp .env.example .env
-# Edite DATABASE_URL se necessario
-
-# 3. Aplicar migracao
+# 2. Aplicar migracao (primeira execucao)
 npm run db:migrate
-
-# 4. Iniciar servidor
-npm run dev
 ```
 
 Servidor: `http://localhost:3001`
+Documentacao Scalar: `http://localhost:3001/docs`
 
-### Cenario B - tudo via Docker Compose (previsto na spec)
+## Documentacao da API (Scalar)
+
+A documentacao interativa foi adaptada para refletir os requisitos do desafio:
+
+- Regras de `cash-in` no endpoint `POST /transaction`
+- Validacoes de payload e erros `422` por campo invalido
+- Regras de payable (`paid` em D+0 para `pix`; `waiting_funds` em D+15 para `credit_card`)
+- Taxas de processamento (2,99% para `pix` e 8,99% para `credit_card`)
+- Restricao PCI DSS (retorno apenas de `cardLast4`)
+- Consulta de saldo consolidado em `GET /balance` (`available` e `waiting_funds`)
+
+Logs dos containers:
+
+```bash
+npm run db:logs
+```
+
+### Cenario B - comandos Docker diretos (opcional)
 
 ```bash
 docker compose up --build
 ```
 
-Observacao: no estado atual, o `docker-compose.yml` versiona apenas o servico de PostgreSQL. Para executar a API localmente hoje, use o Cenario A ou `npm run setup`.
+Na primeira execucao, rode a migracao em outro terminal:
+
+```bash
+npm run db:migrate
+```
+
+Depois, a API fica disponivel em `http://localhost:3001`.
 
 ## Variaveis de ambiente
 
@@ -65,6 +84,10 @@ Observacao: no estado atual, o `docker-compose.yml` versiona apenas o servico de
 | --- | --- | --- |
 | `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/challenger` | String de conexao PostgreSQL |
 | `PORT` | `3001` | Porta HTTP da aplicacao |
+| `HOST` | `0.0.0.0` | Host de bind HTTP (necessario para acesso externo em container) |
+
+Observacao:
+- Para execucao em containers, a API usa `DATABASE_URL` com host `postgres`.
 
 ## Endpoints
 
