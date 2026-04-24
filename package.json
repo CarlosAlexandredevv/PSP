@@ -1,5 +1,5 @@
 {
-  "name": "pagouia-challenger",
+  "name": "challenger",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -17,16 +17,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CarlosAlexandredevv/Pagouia-challenger.git"
+    "url": "git+https://github.com/CarlosAlexandredevv/challenger.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/CarlosAlexandredevv/Pagouia-challenger/issues"
+    "url": "https://github.com/CarlosAlexandredevv/challenger/issues"
   },
-  "homepage": "https://github.com/CarlosAlexandredevv/Pagouia-challenger#readme",
+  "homepage": "https://github.com/CarlosAlexandredevv/challenger#readme",
   "devDependencies": {
     "@swc/core": "^1.15.30",
     "@swc/jest": "^0.2.39",
