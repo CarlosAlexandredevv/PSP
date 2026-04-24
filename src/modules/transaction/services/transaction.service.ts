@@ -25,6 +25,23 @@ interface CreateTransactionResponse {
   transaction: Transaction;
 }
 
+interface ListTransactionsRequest {
+  page?: number;
+  limit?: number;
+  method?: PaymentMethod;
+  cpf?: string;
+}
+
+interface ListTransactionsResponse {
+  transactions: Transaction[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 const PIX_FEE_PERCENTAGE = 2.99;
 const CREDIT_CARD_FEE_PERCENTAGE = 8.99;
 
@@ -91,6 +108,31 @@ export class TransactionService {
     } finally {
       client.release();
     }
+  }
+
+  async list(input: ListTransactionsRequest): Promise<ListTransactionsResponse> {
+    const page = input.page ?? 1;
+    const limit = input.limit ?? 10;
+
+    const filters = {
+      ...(input.method ? { method: input.method } : {}),
+      ...(input.cpf ? { cpf: input.cpf } : {}),
+    };
+
+    const [transactions, total] = await Promise.all([
+      this.transactionRepository.list(filters, page, limit),
+      this.transactionRepository.count(filters),
+    ]);
+
+    return {
+      transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+      },
+    };
   }
 
   private validateCardFields(input: CreateTransactionRequest) {

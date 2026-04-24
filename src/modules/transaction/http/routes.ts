@@ -5,6 +5,9 @@ import {
   createTransactionBodySchema,
   createTransactionResponseSchema,
   type CreateTransactionBody,
+  listTransactionsQuerySchema,
+  listTransactionsResponseSchema,
+  type ListTransactionsQuery,
 } from '../dto/create-transaction.dto';
 import { TransactionService } from '../services/transaction.service';
 
@@ -39,6 +42,33 @@ export async function transactionRoutes(app: FastifyInstance) {
 
       const result = await transactionService.create(serviceInput);
       return reply.status(201).send(result);
+    },
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/transactions',
+    {
+      schema: {
+        tags: ['transaction'],
+        querystring: listTransactionsQuerySchema,
+        response: {
+          200: listTransactionsResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { page, limit, method, cpf } = request.query as ListTransactionsQuery;
+      const serviceInput = {
+        page,
+        limit,
+        ...(method ? { method } : {}),
+        ...(cpf ? { cpf } : {}),
+      };
+      const result = await transactionService.list({
+        ...serviceInput,
+      });
+
+      return reply.status(200).send(result);
     },
   );
 }

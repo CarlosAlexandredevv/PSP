@@ -99,6 +99,158 @@ describe('transaction routes', () => {
     );
   });
 
+  it('retorna transações paginadas no GET /transactions', async () => {
+    if (!dbAvailable) return;
+
+    await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 1_000,
+        description: 'Cafe',
+        method: 'pix',
+        name: 'John Doe',
+        cpf: '12345678900',
+      },
+    });
+
+    await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 2_000,
+        description: 'Livro',
+        method: 'credit_card',
+        name: 'Jane Doe',
+        cpf: '12345678901',
+        card_number: '4111111111111111',
+        valid: '1229',
+        cvv: '123',
+      },
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/transactions?page=1&limit=1',
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json() as {
+      transactions: Array<{ id: string }>;
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    };
+    expect(body.transactions).toHaveLength(1);
+    expect(body.pagination).toEqual({
+      page: 1,
+      limit: 1,
+      total: 2,
+      totalPages: 2,
+    });
+  });
+
+  it('filtra transações por method no GET /transactions', async () => {
+    if (!dbAvailable) return;
+
+    await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 1_000,
+        description: 'Cafe',
+        method: 'pix',
+        name: 'John Doe',
+        cpf: '12345678900',
+      },
+    });
+
+    await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 2_000,
+        description: 'Livro',
+        method: 'credit_card',
+        name: 'Jane Doe',
+        cpf: '12345678901',
+        card_number: '4111111111111111',
+        valid: '1229',
+        cvv: '123',
+      },
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/transactions?method=pix',
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json() as {
+      transactions: Array<{ method: string }>;
+      pagination: { total: number };
+    };
+    expect(body.transactions).toHaveLength(1);
+    expect(body.transactions[0]?.method).toBe('pix');
+    expect(body.pagination.total).toBe(1);
+  });
+
+  it('filtra transações por cpf no GET /transactions', async () => {
+    if (!dbAvailable) return;
+
+    await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 1_000,
+        description: 'Cafe',
+        method: 'pix',
+        name: 'John Doe',
+        cpf: '12345678900',
+      },
+    });
+
+    await app.inject({
+      method: 'POST',
+      url: '/transaction',
+      payload: {
+        amount: 2_000,
+        description: 'Livro',
+        method: 'pix',
+        name: 'Jane Doe',
+        cpf: '12345678901',
+      },
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/transactions?cpf=12345678901',
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json() as {
+      transactions: Array<{ payerCpf: string }>;
+      pagination: { total: number };
+    };
+    expect(body.transactions).toHaveLength(1);
+    expect(body.transactions[0]?.payerCpf).toBe('12345678901');
+    expect(body.pagination.total).toBe(1);
+  });
+
+  it('retorna 422 quando query de GET /transactions é inválida', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/transactions?page=0&limit=200&cpf=123',
+    });
+
+    expect(response.statusCode).toBe(422);
+    const body = response.json() as {
+      message: string;
+      errors: Array<{ field: string; message: string }>;
+    };
+    expect(body.message).toBe('Entidade não processável.');
+    expect(Array.isArray(body.errors)).toBe(true);
+    expect(body.errors.length).toBeGreaterThan(0);
+  });
+
   it('retorna 200 no health check', async () => {
     const response = await app.inject({
       method: 'GET',

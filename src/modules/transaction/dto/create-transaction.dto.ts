@@ -70,18 +70,41 @@ export const createTransactionBodySchema = z
     }
   });
 
+export const transactionSchema = z.object({
+  id: z.uuid(),
+  amount: z.number().int().positive(),
+  description: z.string(),
+  method: z.enum(['pix', 'credit_card']),
+  payerName: z.string(),
+  payerCpf: z.string(),
+  cardLast4: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 export const createTransactionResponseSchema = z.object({
-  transaction: z.object({
-    id: z.uuid(),
-    amount: z.number().int().positive(),
-    description: z.string(),
-    method: z.enum(['pix', 'credit_card']),
-    payerName: z.string(),
-    payerCpf: z.string(),
-    cardLast4: z.string().nullable(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+  transaction: transactionSchema,
+});
+
+export const listTransactionsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  method: z.enum(['pix', 'credit_card']).optional(),
+  cpf: z
+    .string({ error: 'cpf deve ser string numérica.' })
+    .regex(/^[0-9]{11}$/, { error: 'cpf deve conter 11 dígitos numéricos.' })
+    .optional(),
+});
+
+export const listTransactionsResponseSchema = z.object({
+  transactions: z.array(transactionSchema),
+  pagination: z.object({
+    page: z.number().int().min(1),
+    limit: z.number().int().min(1),
+    total: z.number().int().min(0),
+    totalPages: z.number().int().min(0),
   }),
 });
 
 export type CreateTransactionBody = z.infer<typeof createTransactionBodySchema>;
+export type ListTransactionsQuery = z.infer<typeof listTransactionsQuerySchema>;
