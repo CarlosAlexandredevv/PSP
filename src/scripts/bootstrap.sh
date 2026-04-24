@@ -35,10 +35,6 @@ else
       echo "DATABASE_URL=$DEFAULT_DATABASE_URL"
       cat "$ENV_FILE"
     } > "$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
-  elif [ "$CURRENT_DATABASE_URL" = "postgresql://postgres:postgres@localhost:5432/pagouia" ]; then
-    echo "==> Atualizando DATABASE_URL legada para banco challenger..."
-    sed -i.bak "s|^DATABASE_URL=.*|DATABASE_URL=$DEFAULT_DATABASE_URL|" "$ENV_FILE"
-    rm -f "$ENV_FILE.bak"
   fi
 fi
 
