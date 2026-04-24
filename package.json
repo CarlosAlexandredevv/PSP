@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
+    "setup": "bash ./src/scripts/bootstrap.sh",
+    "setup:only": "bash ./src/scripts/bootstrap.sh --no-start",
     "build": "tsup src/server.ts --format esm --dts --clean",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
