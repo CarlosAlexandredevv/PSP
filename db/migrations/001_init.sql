@@ -1,9 +1,22 @@
 BEGIN;
 
-CREATE TYPE payment_method AS ENUM ('pix', 'credit_card');
-CREATE TYPE payable_status AS ENUM ('paid', 'waiting_funds');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_method') THEN
+    CREATE TYPE payment_method AS ENUM ('pix', 'credit_card');
+  END IF;
+END
+$$;
 
-CREATE TABLE transactions (
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payable_status') THEN
+    CREATE TYPE payable_status AS ENUM ('paid', 'waiting_funds');
+  END IF;
+END
+$$;
+
+CREATE TABLE IF NOT EXISTS transactions (
   id UUID PRIMARY KEY,
   amount INTEGER NOT NULL CHECK (amount > 0),
   description VARCHAR(255) NOT NULL CHECK (char_length(trim(description)) > 0),
@@ -19,7 +32,7 @@ CREATE TABLE transactions (
   )
 );
 
-CREATE TABLE payables (
+CREATE TABLE IF NOT EXISTS payables (
   id UUID PRIMARY KEY,
   transaction_id UUID NOT NULL UNIQUE REFERENCES transactions(id) ON DELETE CASCADE,
   gross_amount INTEGER NOT NULL CHECK (gross_amount > 0),
@@ -33,9 +46,9 @@ CREATE TABLE payables (
   CHECK (gross_amount = fee_amount + net_amount)
 );
 
-CREATE INDEX idx_transactions_created_at ON transactions (created_at DESC);
-CREATE INDEX idx_transactions_method ON transactions (method);
-CREATE INDEX idx_payables_status ON payables (status);
-CREATE INDEX idx_payables_payment_date ON payables (payment_date);
+CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_transactions_method ON transactions (method);
+CREATE INDEX IF NOT EXISTS idx_payables_status ON payables (status);
+CREATE INDEX IF NOT EXISTS idx_payables_payment_date ON payables (payment_date);
 
 COMMIT;
